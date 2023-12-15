@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">LoginLogic_Assignment</string>
+    <string-array name="spinner_data">
+        <item>직접입력</item>
+        <item>gmail.com</item>
+        <item>yahoo.com</item>
+        <item>naver.com</item>
+    </string-array>
+</resources>
