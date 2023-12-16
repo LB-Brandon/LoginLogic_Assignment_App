@@ -19,42 +19,35 @@ class HomeActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_home)
 
-        ivProfile = findViewById(R.id.iv_profile)
-        btnFinish = findViewById(R.id.btn_finish)
-        tvName = findViewById(R.id.tv_id)
-
-        val receivedIntent = intent
-        val receivedData = receivedIntent.getStringExtra("email")
-        if (receivedData != null) {
-            tvName.text = receivedData
-        } else {
-            Log.d("Home Activity", "No Intent Data")
-        }
+        initializeViews()
+        setProfileImage()
+        setIntentData()
 
         btnFinish.setOnClickListener {
             finish()
         }
 
-        when (Random.nextInt(1, 4)) {
-            1 -> {
-                ivProfile.setImageDrawable(
-                    ContextCompat.getDrawable(this, R.drawable.ic_profile1)
-                )
-            }
+    }
 
-            2 -> {
-                ivProfile.setImageDrawable(
-                    ContextCompat.getDrawable(this, R.drawable.ic_profile2)
-                )
-            }
+    private fun setIntentData() {
+        val receivedIntent = intent
+        val receivedData = receivedIntent.getStringExtra("email")
+        tvName.text = receivedData ?: "None"
+    }
 
-            3 -> {
-                ivProfile.setImageDrawable(
-                    ContextCompat.getDrawable(this, R.drawable.ic_profile3)
-                )
-            }
-        }
+    private fun setProfileImage() {
+        val profileImages = listOf(
+            R.drawable.ic_profile1,
+            R.drawable.ic_profile2,
+            R.drawable.ic_profile3
+        )
+        val randomImage = profileImages.random()
+        ivProfile.setImageDrawable(ContextCompat.getDrawable(this, randomImage))
+    }
 
-
+    private fun initializeViews() {
+        ivProfile = findViewById(R.id.iv_profile)
+        btnFinish = findViewById(R.id.btn_finish)
+        tvName = findViewById(R.id.tv_id)
     }
 }
