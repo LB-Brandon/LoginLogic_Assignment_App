@@ -21,37 +21,34 @@ class SignInActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_sign_in)
 
+        initializeViews()
+        setListeners()
+
+    }
+
+    private fun initializeViews() {
         etEmail = findViewById(R.id.et_email)
         etPassword = findViewById(R.id.et_password)
         btnSignIn = findViewById(R.id.btn_sign_in)
         btnSignUp = findViewById(R.id.btn_sign_up)
+    }
 
+    private fun setListeners() {
         btnSignIn.setOnClickListener {
-            if (etEmail.text.isEmpty() || etPassword.text.isEmpty()) {
-                Toast.makeText(this, "아이디/비밀번호를 확인해주세요", Toast.LENGTH_SHORT).show()
+            if (isSignInValid()) {
+                startHomeActivity()
+                showToast("로그인 성공")
             } else {
-                val intent = Intent(this, HomeActivity::class.java)
-                intent.putExtra("email", etEmail.text.toString())
-                startActivity(intent)
-                Toast.makeText(this, "로그인 성공", Toast.LENGTH_SHORT).show()
+                showToast("아이디/비밀번호를 확인해주세요")
             }
         }
 
-//        getContent =
-//            registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-//                if (result.resultCode == RESULT_OK) {
-//                    // 결과 값 받아옴
-//                    val selectedData = result.data?.data
-//                }else{
-//                    // 결과 값 선택 실패
-//                }
-//            }
         getContent = registerForActivityResult(MyActivityResultContract()) { result ->
             if (result != null) {
                 val userId = result.getString("userId")
                 val password = result.getString("password")
 
-                // 결과값 사용
+                // 반환된 결과값 사용
                 etEmail.setText(userId)
                 etPassword.setText(password)
             } else {
@@ -60,9 +57,27 @@ class SignInActivity : AppCompatActivity() {
         }
 
         btnSignUp.setOnClickListener {
-            val intent = Intent(this, SignUpActivity::class.java)
-//            startActivity(intent)
-            getContent.launch(intent)
+            startSignUpActivity()
         }
+    }
+
+    private fun showToast(message: String) {
+        Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+    }
+
+
+    private fun isSignInValid(): Boolean {
+        return etEmail.text.isNotEmpty() && etPassword.text.isNotEmpty()
+    }
+
+    private fun startHomeActivity() {
+        val intent = Intent(this, HomeActivity::class.java)
+        intent.putExtra("email", etEmail.text.toString())
+        startActivity(intent)
+    }
+
+    private fun startSignUpActivity() {
+        val intent = Intent(this, SignUpActivity::class.java)
+        getContent.launch(intent)
     }
 }
