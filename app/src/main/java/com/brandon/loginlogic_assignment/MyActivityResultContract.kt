@@ -13,17 +13,18 @@ class MyActivityResultContract : ActivityResultContract<Intent, Bundle?>() {
     }
 
     override fun parseResult(resultCode: Int, intent: Intent?): Bundle? {
-        // 여러 데이터를 Bundle로 반환
+        // 계약 생성자에게 Bundle 형으로 값 반환
         return when {
             resultCode == RESULT_OK && intent != null -> {
-                Bundle().apply {
-                    // 피계약자로부터 받은 데이터를 Bundle 형태로 반환한다
-                    putString("userId", intent.getStringExtra("userId"))
-                    putString("password", intent.getStringExtra("password"))
-                }
+                createResultBundle(intent)
             }
-
             else -> null
         }
+    }
+
+    private fun createResultBundle(intent: Intent) = Bundle().apply {
+        // 피계약자로부터 받은 데이터를 Bundle 형태로 반환
+        putString("userId", intent.getStringExtra("userId"))
+        putString("password", intent.getStringExtra("password"))
     }
 }
