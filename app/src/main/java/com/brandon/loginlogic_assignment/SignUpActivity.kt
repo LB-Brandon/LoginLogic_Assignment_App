@@ -2,7 +2,6 @@ package com.brandon.loginlogic_assignment
 
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import android.view.View
 import android.widget.AdapterView
 import android.widget.Button
@@ -11,9 +10,7 @@ import android.widget.Spinner
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.view.isVisible
-import androidx.core.view.updateLayoutParams
 import androidx.core.widget.addTextChangedListener
 
 class SignUpActivity : AppCompatActivity() {
@@ -46,133 +43,7 @@ class SignUpActivity : AppCompatActivity() {
         setContentView(R.layout.activity_sign_up)
 
         initializeViews()
-
-        etName.setOnFocusChangeListener { v, hasFocus ->
-            if (!hasFocus) {
-                tvNameValidation.isVisible = isNameValid().not()
-            }
-        }
-
-        etUserEmail.setOnFocusChangeListener { v, hasFocus ->
-            if (!hasFocus) {
-                tvEmailValidation.isVisible = isUserEmailValid().not()
-            }
-        }
-
-        etPassword.addTextChangedListener {
-            // 유효성 검사(개수, 특수문자, 대문자)
-            val input = etPassword.text
-            if (input.isEmpty()) {
-                tvPasswordCondition.isVisible = true
-                tvPasswordValidation.visibility = View.INVISIBLE
-                isPasswordValid = false
-            } else {
-                // 입력 내용 존재
-                // 유효성 검사
-                if (input.length < 5) {
-                    tvPasswordCondition.isVisible = false
-                    tvPasswordValidation.text = "5자리 이상 입력"
-                    tvPasswordValidation.visibility = View.VISIBLE
-                    isPasswordValid = false
-                } else if ((input.any { it.isUpperCase() }).not()) {
-                    tvPasswordCondition.isVisible = false
-                    tvPasswordValidation.text = "대문자 1개 이상 입력"
-                    tvPasswordValidation.visibility = View.VISIBLE
-                    isPasswordValid = false
-                } else if ((input.any { !it.isLetterOrDigit() }).not()) {
-                    tvPasswordCondition.isVisible = false
-                    tvPasswordValidation.text = "특수문자 1개 이상 입력"
-                    tvPasswordValidation.visibility = View.VISIBLE
-                    isPasswordValid = false
-                    Log.d("SignUp", "특수문자")
-                } else {
-                    tvPasswordCondition.isVisible = false
-                    tvPasswordValidation.visibility = View.INVISIBLE
-                    isPasswordValid = true
-                }
-            }
-        }
-
-        etPasswordConfirm.setOnFocusChangeListener { v, hasFocus ->
-            if (!hasFocus) {
-                Log.d("Signup", "${isPasswordConfirmValid()}")
-                tvPasswordConfirmValidation.isVisible = isPasswordConfirmValid().not()
-            }
-        }
-
-        btnSignUp.setOnClickListener {
-            Log.d(
-                "Signup",
-                "${isNameValid()}, ${isUserEmailValid()}, ${isPasswordValid()}, ${isPasswordConfirmValid()}"
-            )
-            Log.d("Signup", "${etPassword.text}, ${etPasswordConfirm.text}")
-            if (isNameValid() && isUserEmailValid() && isPasswordValid() && isPasswordConfirmValid()) {
-                // 회원가입 완료
-//                val intent = Intent(this, SignInActivity::class.java)
-//                startActivity(intent)
-                val resultIntent = Intent().apply {
-                    putExtra("userId", "${etUserEmail.text.toString()}@${getEmailDomain()}")
-                    putExtra("password", etPassword.text.toString())
-                }
-                setResult(RESULT_OK, resultIntent)
-                finish()
-            } else {
-                Toast.makeText(this, "입력되지 않은 정보가 있습니다.", Toast.LENGTH_SHORT).show()
-            }
-        }
-
-        spEmail.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(
-                parent: AdapterView<*>?, view: View?, position: Int, id: Long
-            ) {
-                // set domain
-                emailDomain = spEmail.getItemAtPosition(position).toString()
-                when (position) {
-                    0 -> {
-                        // 직접입력
-                        emailDomain = ""
-                        etUserEmail.apply {
-                            updateLayoutParams<ConstraintLayout.LayoutParams> {
-                                horizontalWeight = 1f
-                            }
-                        }
-                        etDomainEmail.apply {
-                            isVisible = true
-                            updateLayoutParams<ConstraintLayout.LayoutParams> {
-                                horizontalWeight = 1f
-                            }
-                        }
-                        spEmail.apply {
-                            updateLayoutParams<ConstraintLayout.LayoutParams> {
-                                horizontalWeight = 1f
-                            }
-                        }
-
-                    }
-
-                    else -> {
-                        etUserEmail.apply {
-                            updateLayoutParams<ConstraintLayout.LayoutParams> {
-                                horizontalWeight = 2f
-                            }
-                        }
-                        etDomainEmail.apply {
-                            isVisible = false
-                        }
-                        spEmail.apply {
-                            updateLayoutParams<ConstraintLayout.LayoutParams> {
-                                horizontalWeight = 2f
-                            }
-                        }
-                    }
-                }
-            }
-
-            override fun onNothingSelected(parent: AdapterView<*>?) {
-                // 아무 것도 선택되지 않았을 때의 처리
-            }
-        }
-
+        setListeners()
 
     }
 
@@ -194,16 +65,117 @@ class SignUpActivity : AppCompatActivity() {
     }
 
 
+    private fun setListeners() {
+        setFocusChangeListener(etName, tvNameValidation, this::isNameValid)
+        setFocusChangeListener(etUserEmail, tvEmailValidation, this::isUserEmailValid)
+
+        etPassword.addTextChangedListener {
+            validatePassword()
+        }
+        setFocusChangeListener(
+            etPasswordConfirm, tvPasswordConfirmValidation, this::isPasswordConfirmValid
+        )
+        btnSignUp.setOnClickListener {
+            if (validateUserInputs()) {
+                val resultIntent = Intent().apply {
+                    putExtra("userId", "${etUserEmail.text}@${getEmailDomain()}")
+                    putExtra("password", etPassword.text.toString())
+                }
+                setResult(RESULT_OK, resultIntent)
+                finish()
+            } else {
+                Toast.makeText(this, "입력되지 않은 정보가 있습니다.", Toast.LENGTH_SHORT).show()
+            }
+        }
+        spEmail.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(
+                parent: AdapterView<*>?, view: View?, position: Int, id: Long
+            ) {
+                // set domain
+                emailDomain = spEmail.getItemAtPosition(position).toString()
+                when (position) {
+                    0 -> {
+                        // 직접입력
+                        emailDomain = ""
+                        etDomainEmail.isVisible = true
+                    }
+
+                    else -> {
+                        etDomainEmail.isVisible = false
+                    }
+                }
+            }
+
+            override fun onNothingSelected(parent: AdapterView<*>?) {
+                // 아무 것도 선택되지 않았을 때의 처리
+            }
+        }
+    }
+
+    private fun setFocusChangeListener(
+        editText: EditText, errorTextView: TextView, validationFunc: () -> Boolean
+    ) {
+        editText.setOnFocusChangeListener { _, hasFocus ->
+            if (!hasFocus) {
+                errorTextView.isVisible = validationFunc().not()
+            }
+        }
+    }
+
+    private fun validateUserInputs(): Boolean {
+        return isNameValid() && isUserEmailValid() && isPasswordValid() && isPasswordConfirmValid()
+    }
+
+    private fun validatePassword() {
+        val input = etPassword.text.toString()
+        isPasswordValid = when {
+            input.isEmpty() -> {
+                tvPasswordCondition.isVisible = true
+                tvPasswordValidation.isVisible = false
+                false
+            }
+
+            input.length < MIN_PASSWORD_LENGTH -> {
+                tvPasswordCondition.isVisible = false
+                tvPasswordValidation.text = "5자리 이상 입력"
+                tvPasswordValidation.isVisible = true
+                false
+            }
+
+            (input.any { it.isUpperCase() }).not() -> {
+                tvPasswordCondition.isVisible = false
+                tvPasswordValidation.text = "대문자 1개 이상 입력"
+                tvPasswordValidation.isVisible = true
+                false
+            }
+
+            (input.all { it.isLetterOrDigit() }) -> {
+                tvPasswordCondition.isVisible = false
+                tvPasswordValidation.text = "특수문자 1개 이상 입력"
+                tvPasswordValidation.isVisible = true
+                false
+            }
+
+            else -> {
+                tvPasswordCondition.isVisible = false
+                tvPasswordValidation.isVisible = false
+                true
+            }
+        }
+    }
+
+
     private fun isPasswordConfirmValid() =
         (etPassword.text.toString() == etPasswordConfirm.text.toString())
 
     private fun isUserEmailValid() = etUserEmail.text.isNotEmpty()
 
+
     private fun isNameValid() = etName.text.isNotEmpty()
 
     private fun isPasswordValid() = isPasswordValid
 
-    fun getEmailDomain(): String {
+    private fun getEmailDomain(): String {
         return emailDomain.ifEmpty {
             etDomainEmail.text.toString()
         }
